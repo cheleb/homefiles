@@ -1,0 +1,26 @@
+#!/usr/bin/perl
+
+my $search = shift;
+$search =~ s!\.!/!g;
+print "Looking for \"$search\"\n";
+
+if($#ARGV > 0){
+	for (@ARGV) {
+		&scanEntry($_);
+	}
+}else {
+	while (<>) {
+	  chomp;
+	  &scanEntry($_)
+    }
+}
+
+sub scanEntry {
+	my $file = shift;
+    open( my $unzip, "unzip -l $file | ");
+    while(my $entry = <$unzip>){
+    	chomp($entry);
+    	$entry =~ m/$search/o &&  print $file, " match ", $entry, "\n";
+    }
+    close $unzip;
+}
