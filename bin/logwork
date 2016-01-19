@@ -1,0 +1,4 @@
+
+dOw=`date "+%A"`
+wOy=`date "+%W"`
+echo $dOw : $@ >> $HOME/logwork/work_$((wOy+1)).log
