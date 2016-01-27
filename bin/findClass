@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 my $search = shift;
-$search =~ s!\.!/!g;
+#$search =~ s!\.!/!g;
 print "Looking for \"$search\"\n";
 
 if($#ARGV > 0){
