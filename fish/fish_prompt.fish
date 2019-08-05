@@ -33,9 +33,8 @@ set __fish_git_prompt_char_upstream_behind ' 👇  '
 set __fish_git_prompt_char_upstream_diverged ' 🚧  '
 set __fish_git_prompt_char_upstream_equal ' 💯 ' 
 
-function clear_to_end
-  commandline (commandline --cut-at-cursor)
-end
+#Dirty hack to clear term when shriking.
+set cols_old = 0
 
 function visual_length --description\
     "Return visual length of string, i.e. without terminal escape sequences"
@@ -44,13 +43,18 @@ function visual_length --description\
 end
 
 function fish_prompt
-  clear_to_end
   set last_status $status
   set my_git_prompt (__fish_git_prompt)
   if test -n "$my_git_prompt" 
     set cols (tput cols) 
+    if test -n "$cols_old"
+      if test  $cols_old -gt $cols
+        clear
+      end
+    end
+    set -x cols_old $cols
     set pwd (prompt_pwd)
-    set length (string trim (printf "$pwd$my_git_prompt" | perl -pe 's/\x1b.*?[mGKH]//g' | wc -m ) )
+    set length (printf "$pwd$my_git_prompt" | perl -pe 's/\x1b.*?[mGKH]//g' | wc -m ) 
     set MID (math "$cols - $length - 5" )
     set padding (string repeat -n $MID ' ')
     set_color $fish_color_cwd
