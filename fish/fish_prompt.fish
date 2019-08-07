@@ -34,7 +34,7 @@ set __fish_git_prompt_char_upstream_diverged ' 🚧  '
 set __fish_git_prompt_char_upstream_equal ' 💯 ' 
 
 #Dirty hack to clear term when shriking.
-set cols_old = 0
+set cols_old 0
 
 function visual_length --description\
     "Return visual length of string, i.e. without terminal escape sequences"
@@ -48,7 +48,7 @@ function fish_prompt
   if test -n "$my_git_prompt" 
     set cols (tput cols) 
     if test -n "$cols_old"
-      if test  $cols_old -gt $cols
+      if test $cols_old -gt $cols
         clear
       end
     end
