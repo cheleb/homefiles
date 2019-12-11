@@ -19,7 +19,12 @@ ZSH_THEME_GIT_PROMPT_UNTRACKED="%{$fg_bold[red]%}😱%{$reset_color%}"
 cheleb_git_branch () {
   ref=$(command git symbolic-ref HEAD 2> /dev/null) || \
   ref=$(command git rev-parse --short HEAD 2> /dev/null) || return
-  echo "${ref#refs/heads/}"
+  if [[ $ref == "refs/heads/master" ]]; then
+  echo " ${ref#refs/heads/}"
+  else 
+  echo "🔀 ${ref#refs/heads/}"
+  fi
+
 }
 
 cheleb_git_status() {
