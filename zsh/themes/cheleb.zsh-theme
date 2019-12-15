@@ -15,7 +15,7 @@ ZSH_THEME_GIT_PROMPT_BEHIND="%{$fg[magenta]%}⬇️ %{$reset_color%}"
 ZSH_THEME_GIT_PROMPT_STAGED="%{$fg_bold[green]%}🔅%{$reset_color%}"
 ZSH_THEME_GIT_PROMPT_UNSTAGED="%{$fg_bold[yellow]%}👀%{$reset_color%}"
 ZSH_THEME_GIT_PROMPT_UNTRACKED="%{$fg_bold[red]%}😱%{$reset_color%}"
-
+ZSH_THEME_GIT_PROMPT_STASHED="%{$fg_bold[red]%}📋%{$reset_color%}"
 cheleb_git_branch () {
   ref=$(command git symbolic-ref HEAD 2> /dev/null) || \
   ref=$(command git rev-parse --short HEAD 2> /dev/null) || return
@@ -48,15 +48,22 @@ cheleb_git_status() {
   else
     _STATUS="$_STATUS$ZSH_THEME_GIT_PROMPT_CLEAN"
   fi
-
+  # 
   # check status of local repository
   _INDEX=$(command git status --porcelain -b 2> /dev/null)
-  if $(echo "$_INDEX" | command grep -q '^## .*ahead'); then
-    _STATUS="$_STATUS$ZSH_THEME_GIT_PROMPT_AHEAD"
+  _REV_LIST=$(command git rev-list --left-right --count head...origin 2> /dev/null)
+  _AHEAD=${_REV_LIST[(w)1]}
+  _BEHIND=${_REV_LIST[(w)2]}
+  
+  if [[ "$_AHEAD" != "0" ]]; then
+  #if $(echo "$_INDEX" | command grep -q '^## .*ahead'); then
+    _STATUS="($_AHEAD $ZSH_THEME_GIT_PROMPT_AHEAD)$_STATUS"
   fi
-  if $(echo "$_INDEX" | command grep -q '^## .*behind'); then
-    _STATUS="$_STATUS$ZSH_THEME_GIT_PROMPT_BEHIND"
+  if [[ "$_BEHIND" != "0" ]]; then
+  #if $(echo "$_INDEX" | command grep -q '^## .*behind'); then
+    _STATUS="$_STATUS($ZSH_THEME_GIT_PROMPT_BEHIND $_BEHIND)"
   fi
+  
   if $(echo "$_INDEX" | command grep -q '^## .*diverged'); then
     _STATUS="$_STATUS$ZSH_THEME_GIT_PROMPT_DIVERGED"
   fi
