@@ -19,12 +19,7 @@ ZSH_THEME_GIT_PROMPT_STASHED="%{$fg_bold[red]%}📋%{$reset_color%}"
 cheleb_git_branch () {
   ref=$(command git symbolic-ref HEAD 2> /dev/null) || \
   ref=$(command git rev-parse --short HEAD 2> /dev/null) || return
-  if [[ $ref == "refs/heads/master" ]]; then
-  echo " ${ref#refs/heads/}"
-  else 
-  echo "🔀 ${ref#refs/heads/}"
-  fi
-
+  echo "${ref#refs/heads/}"
 }
 
 cheleb_git_status() {
@@ -50,8 +45,9 @@ cheleb_git_status() {
   fi
   # 
   # check status of local repository
+  local _branch=$(cheleb_git_branch)
   _INDEX=$(command git status --porcelain -b 2> /dev/null)
-  _REV_LIST=$(command git rev-list --left-right --count head...origin 2> /dev/null)
+  _REV_LIST=$(command git rev-list --left-right --count $_branch...origin/$_branch 2> /dev/null)
   _AHEAD=${_REV_LIST[(w)1]}
   _BEHIND=${_REV_LIST[(w)2]}
   
@@ -63,7 +59,8 @@ cheleb_git_status() {
   #if $(echo "$_INDEX" | command grep -q '^## .*behind'); then
     _STATUS="$_STATUS($ZSH_THEME_GIT_PROMPT_BEHIND $_BEHIND)"
   fi
-  
+
+
   if $(echo "$_INDEX" | command grep -q '^## .*diverged'); then
     _STATUS="$_STATUS$ZSH_THEME_GIT_PROMPT_DIVERGED"
   fi
@@ -77,6 +74,9 @@ cheleb_git_status() {
 
 cheleb_git_prompt () {
   local _branch=$(cheleb_git_branch)
+  if [[ "$branch" != "master" ]]; then
+    _branch=" 🔀 $_branch"
+  fi
   local _status=$(cheleb_git_status)
   local _result=""
   if [[ "${_branch}x" != "x" ]]; then
