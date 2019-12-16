@@ -24,7 +24,9 @@ cheleb_git_branch () {
 
 cheleb_git_status() {
   _STATUS=""
-
+  if ! $(git rev-parse --is-inside-work-tree 2>/dev/null);then
+   return
+  fi
   # check status of files
   _INDEX=$(command git status --porcelain 2> /dev/null)
   if [[ -n "$_INDEX" ]]; then
@@ -45,8 +47,9 @@ cheleb_git_status() {
   fi
   # 
   # check status of local repository
-  local _branch=$(cheleb_git_branch)
   _INDEX=$(command git status --porcelain -b 2> /dev/null)
+  
+  local _branch=$(cheleb_git_branch)
   _REV_LIST=$(command git rev-list --left-right --count $_branch...origin/$_branch 2> /dev/null)
   _AHEAD=${_REV_LIST[(w)1]}
   _BEHIND=${_REV_LIST[(w)2]}
@@ -59,12 +62,9 @@ cheleb_git_status() {
   #if $(echo "$_INDEX" | command grep -q '^## .*behind'); then
     _STATUS="$_STATUS($ZSH_THEME_GIT_PROMPT_BEHIND $_BEHIND)"
   fi
-
-
   if $(echo "$_INDEX" | command grep -q '^## .*diverged'); then
     _STATUS="$_STATUS$ZSH_THEME_GIT_PROMPT_DIVERGED"
   fi
-
   if $(command git rev-parse --verify refs/stash &> /dev/null); then
     _STATUS="$_STATUS$ZSH_THEME_GIT_PROMPT_STASHED"
   fi
@@ -74,9 +74,6 @@ cheleb_git_status() {
 
 cheleb_git_prompt () {
   local _branch=$(cheleb_git_branch)
-  if [[ "$branch" != "master" ]]; then
-    _branch=" 🔀 $_branch"
-  fi
   local _status=$(cheleb_git_status)
   local _result=""
   if [[ "${_branch}x" != "x" ]]; then
