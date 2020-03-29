@@ -10,28 +10,31 @@ exit if $git->eof;
 
 print $red, '±', $green, '±', $reset;
 my $head = <$git>;
-#print "-->",$head, "<--\n";
+
 &parseFileStatus($git);
 &parseHead($head);
 $git->close;
 exit;
 
+sub warning {
+  ($red, @_, $reset)
+}
+
 sub parseHead {
-  if(@_[0] =~ m!([\w-]+)\.\.\.([\w-]+)/([\w-]+)\s(\[(?:(ahead) (\d+))?(?:, )?(?:(behind) (\d+))?\])?!){
+  if(@_[0] =~ m!([\w-]+)\.\.\.([\w-]+)/([\w-]+)\s(?:\[(?:(ahead) (\d+))?(?:, )?(?:(behind) (\d+))?\])?!){
     #     $1        $2          $3                 $4            $5       $6        $7          $8 
-    my ($branch, $remote, $remoteBranch, $is_ahead_or_behing,$is_ahead,$n_ahead,$is_behind, $n_behind) = ($1, $2, $3, $4, $5, $6, $7, $8);
-    if($is_ahead_or_behing){
-        print "(";
-        print "⬆️  $n_ahead" if $is_ahead;
-        print "," if $n_ahead && $is_behind;
-        print "⬇️  $n_behind" if $is_behind;
-        print ") ";
-    }
-    print '[';
-    print $branch;
-    print $red, '...', $remote, $reset unless $remote eq "origin";
-    print $red, $remoteBranch, $reset unless $branch eq $remoteBranch;
-    print ']',"\n";
+    my ($branch, $remote, $remoteBranch,$is_ahead,$n_ahead,$is_behind, $n_behind) = ($1, $2, $3, $4, $5, $6, $7);
+    my @remote=();
+    
+    push @remote, "⬆️  $n_ahead" if $is_ahead;
+    push @remote, "⬇️  $n_behind" if $is_behind;
+    print '(', join(', ', @remote), ") " if @remote;
+    
+    my @branch=();
+    push @branch, $branch unless $branch eq "master";
+    push @branch, &warning($remote),'/', unless $remote eq "origin";
+    push @branch, &warning($remoteBranch) unless $branch eq $remoteBranch;
+    print '[', @branch, ']' if @branch;
     #my @oo = ($1, $2, $3, $4, $5, $6, $7, $8);
     #&dump(@oo);
     if($is_ahead && $is_behind){
@@ -40,7 +43,6 @@ sub parseHead {
       print "🕥" if $is_behind;
       print "✨" if $is_ahead;
     }
-    print "\n";
   }
 }
 
@@ -56,7 +58,7 @@ sub parseFileStatus {
     for (my $i=@checks-1; $i >= 0; $i--){
       if(my $state = $checks[$i]->($_)){
             splice @checks, $i, 1;
-            print ' ', $state, "\n";
+            print ' ', $state;
             last;
         }
     }
