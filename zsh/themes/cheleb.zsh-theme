@@ -21,7 +21,11 @@ cheleb_git_branch () {
   ref=$(command git rev-parse --short HEAD 2> /dev/null) || return
   echo "${ref#refs/heads/}"
 }
-
+cheleb_git_branch () {
+  ref=$(command git status --porcelain -b 2> /dev/null) || return
+  ref=$(command git status --porcelain -b | head -1 | perl -pe 's/\.\.\.origin\/\w+//;s/##/±/;s/ahead/⬆️ /;s/behind/⬇️ /' 2> /dev/null)
+  echo $ref
+}
 cheleb_git_status() {
   _STATUS=""
   if ! $(git rev-parse --is-inside-work-tree 2>/dev/null);then
@@ -50,29 +54,23 @@ cheleb_git_status() {
   _INDEX=$(command git status --porcelain -b 2> /dev/null)
   
   local _branch=$(cheleb_git_branch)
-  _REV_LIST=$(command git rev-list --left-right --count $_branch...origin/$_branch 2> /dev/null)
-  _AHEAD=${_REV_LIST[(w)1]}
-  _BEHIND=${_REV_LIST[(w)2]}
   
-  if [[ "$_AHEAD" != "0" ]]; then
-  #if $(echo "$_INDEX" | command grep -q '^## .*ahead'); then
-    _STATUS="($_AHEAD $ZSH_THEME_GIT_PROMPT_AHEAD)$_STATUS"
-  fi
-  if [[ "$_BEHIND" != "0" ]]; then
-  #if $(echo "$_INDEX" | command grep -q '^## .*behind'); then
-    _STATUS="$_STATUS($ZSH_THEME_GIT_PROMPT_BEHIND $_BEHIND)"
-  fi
   if $(echo "$_INDEX" | command grep -q '^## .*diverged'); then
     _STATUS="$_STATUS$ZSH_THEME_GIT_PROMPT_DIVERGED"
   fi
   if $(command git rev-parse --verify refs/stash &> /dev/null); then
     _STATUS="$_STATUS$ZSH_THEME_GIT_PROMPT_STASHED"
   fi
-
   echo $_STATUS
 }
 
+
 cheleb_git_prompt () {
+  echo $(zsh-git-prompt.pl %{$fg_bold[red]%} %{$fg_bold[green]%} %{$reset_color%})
+}
+
+
+cheleb_git_prompt_ () {
   local _branch=$(cheleb_git_branch)
   local _status=$(cheleb_git_status)
   local _result=""
@@ -125,7 +123,7 @@ cheleb_precmd () {
 }
 
 setopt prompt_subst
-PROMPT='> $_LIBERTY '
+PROMPT='> $_LIBERTY'
 RPROMPT='$(nvm_prompt_info) $(cheleb_git_prompt)'
 
 autoload -U add-zsh-hook
