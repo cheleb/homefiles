@@ -21,7 +21,7 @@ sub warning {
 }
 
 sub parseHead {
-  if(@_[0] =~ m!([\w-]+)\.\.\.([\w-]+)/([\w-]+)\s(?:\[(?:(ahead) (\d+))?(?:, )?(?:(behind) (\d+))?\])?!){
+  if(@_[0] =~ m!([\w-]+)(?:\.\.\.([\w-]+)/([\w-]+)\s(?:\[(?:(ahead) (\d+))?(?:, )?(?:(behind) (\d+))?\])?)?!){
     #     $1        $2          $3                 $4            $5       $6        $7          $8 
     my ($branch, $remote, $remoteBranch,$is_ahead,$n_ahead,$is_behind, $n_behind) = ($1, $2, $3, $4, $5, $6, $7);
     my @remote=();
@@ -31,12 +31,16 @@ sub parseHead {
     print '(', join(', ', @remote), ") " if @remote;
     
     my @branch=();
-    push @branch, $branch unless $branch eq "master";
-    push @branch, &warning($remote),'/', unless $remote eq "origin";
-    push @branch, &warning($remoteBranch) unless $branch eq $remoteBranch;
+    if($remote){
+      push @branch, $branch unless $branch eq "master";
+      push @branch, &warning($remote),'/', unless $remote eq "origin";
+      push @branch, &warning($remoteBranch) unless $branch eq $remoteBranch;
+    } else {
+      push @branch, "🎉 ", &warning($branch), " 🌶 "
+    }
     print '[', @branch, ']' if @branch;
-    #my @oo = ($1, $2, $3, $4, $5, $6, $7, $8);
-    #&dump(@oo);
+  # my @oo = ($1, $2, $3, $4, $5, $6, $7, $8);
+  #  &dump(@oo);
     if($is_ahead && $is_behind){
     print "⚠️"
     }else{
@@ -65,9 +69,9 @@ sub parseFileStatus {
   }
 }
 
-#sub dump {
-#    print "\n";
-#    while (my ($i, $e) = each @_) {
+# sub dump {
+#     print "\n";
+#     while (my ($i, $e) = each @_) {
 #      print $i+1, " -> $e\n";
 #    }
-#}
+# }
