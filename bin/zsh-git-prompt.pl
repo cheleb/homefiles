@@ -36,7 +36,7 @@ sub parseHead {
       push @branch, &warning($remote),'/', unless $remote eq "origin";
       push @branch, &warning($remoteBranch) unless $branch eq $remoteBranch;
     } else {
-      push @branch, "🎉 ", &warning($branch), " 🌶 "
+      push @branch, "🎉 ", &warning($branch)
     }
     print '[', @branch, ']' if @branch;
   # my @oo = ($1, $2, $3, $4, $5, $6, $7, $8);
