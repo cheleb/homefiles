@@ -9,6 +9,17 @@ cheleb_git_prompt () {
 
 _PATH="%{$fg_bold[white]%}%~%{$reset_color%}"
 
+if [[ $EUID -eq 0 ]]; then
+  _USERNAME="%{$fg_bold[red]%}%n"
+  _LIBERTY="%{$fg[red]%}#"
+else
+  _USERNAME="%{$fg_bold[white]%}%n"
+  _LIBERTY="%{$fg[green]%}$"
+fi
+_USERNAME="$_USERNAME%{$reset_color%}@%m"
+_LIBERTY="$_LIBERTY%{$reset_color%}"
+
+
 
 get_space () {
   local STR=$1$2
