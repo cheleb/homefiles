@@ -23,13 +23,13 @@ sub warning {
 }
 
 sub parseHead {
-  if(@_[0] =~ m!^##\s([\w\-]+(?:\.[\w\-]+)*)(?:\.\.\.([\w\-\.]+)/([\w\-\.]+)(?:\s(?:\[(?:(ahead) (\d+))?(?:, )?(?:(behind) (\d+))?\])?)?)?!){
+  if(@_[0] =~ m!^##\s([\w\-]+(?:\.[\w\-]+)*)(?:\.\.\.([\w\-\.]+)/([\w\-\.]+)(?:\s(?:\[(?:(?:(ahead) (\d+))?(?:, )?(?:(behind) (\d+))|(gone))?\])?)?)?!){
     if($debug){
       my @oo = ($1, $2, $3, $4, $5, $6, $7, $8);
       &dump(@oo);
     }
     #     $1        $2          $3                 $4            $5       $6        $7          $8 
-    my ($branch, $remote, $remoteBranch,$is_ahead,$n_ahead,$is_behind, $n_behind) = ($1, $2, $3, $4, $5, $6, $7);
+    my ($branch, $remote, $remoteBranch,$is_ahead,$n_ahead,$is_behind, $n_behind, $gone) = ($1, $2, $3, $4, $5, $6, $7, $8);
     my @remote=();
     
     push @remote, "⬆️  $n_ahead" if $is_ahead;
@@ -37,7 +37,9 @@ sub parseHead {
     print '(', join(', ', @remote), ") " if @remote;
     
     my @branch=();
-    if($remote){
+    if($gone){
+      push @branch, "🔥 ", &warning($branch), "🔥"
+    }elsif($remote){
       push @branch, $branch unless $branch eq "master";
       push @branch, &warning($remote),'/', unless $remote eq "origin";
       push @branch, &warning($remoteBranch) unless $branch eq $remoteBranch;
