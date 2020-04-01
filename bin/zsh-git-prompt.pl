@@ -2,6 +2,8 @@
 
 use strict;
 
+my $debug = $ENV{'ZZBUG'};
+
 my $red = shift;
 my $green = shift;
 my $reset = shift;
@@ -21,7 +23,11 @@ sub warning {
 }
 
 sub parseHead {
-  if(@_[0] =~ m!([\w\-\.]+)(?:\.\.\.([\w\-\.]+)/([\w\-\.]+)(?:\s(?:\[(?:(ahead) (\d+))?(?:, )?(?:(behind) (\d+))?\])?)?)!){
+  if(@_[0] =~ m!^##\s([\w\-]+(?:\.[\w\-]+)*)(?:\.\.\.([\w\-\.]+)/([\w\-\.]+)(?:\s(?:\[(?:(ahead) (\d+))?(?:, )?(?:(behind) (\d+))?\])?)?)?!){
+    if($debug){
+      my @oo = ($1, $2, $3, $4, $5, $6, $7, $8);
+      &dump(@oo);
+    }
     #     $1        $2          $3                 $4            $5       $6        $7          $8 
     my ($branch, $remote, $remoteBranch,$is_ahead,$n_ahead,$is_behind, $n_behind) = ($1, $2, $3, $4, $5, $6, $7);
     my @remote=();
@@ -39,14 +45,19 @@ sub parseHead {
       push @branch, "🎉 ", &warning($branch)
     }
     print '[', @branch, ']' if @branch;
-   #my @oo = ($1, $2, $3, $4, $5, $6, $7, $8);
-   # &dump(@oo);
+    
     if($is_ahead && $is_behind){
     print "⚠️"
     }else{
       print "🕥" if $is_behind;
       print "✨" if $is_ahead;
     }
+  }
+  elsif($debug){
+    if($_[0] =~ m!^##\s([\w\-\.]+)!){
+      warn "OOO-->$1<--\n";
+    }
+    warn "-->", @_[0], "<--\n"
   }
 }
 
