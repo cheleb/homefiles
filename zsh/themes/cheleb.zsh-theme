@@ -3,7 +3,7 @@
 ### Git [±master ▾●]
 
 cheleb_git_prompt () {
-  print $(zsh-git-prompt.pl %{$fg_bold[red]%} %{$fg_bold[green]%} %{$reset_color%})
+  print $(zsh-git-prompt.pl --warning=%{$fg_bold[red]%} --cool=%{$fg_bold[green]%} --reset=%{$reset_color%})
 }
 
 

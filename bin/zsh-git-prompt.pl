@@ -2,15 +2,21 @@
 
 use strict;
 
-my $debug = $ENV{'ZZBUG'};
+use Getopt::Long;
+my $warning;
+my $cool;
+my $reset;
+my $debugLevel=0;
+GetOptions ("warning=s" => \$warning,     # String
+            "cool=s"    => \$cool,        # string
+            "reset=s"    => \$reset,        # string
+            "debug=i"   => \$debugLevel)  # Numeric
+or die("Error in command line arguments\n");
 
-my $red = shift;
-my $green = shift;
-my $reset = shift;
 open my $git, "git status --porcelain -b 2> /dev/null |";
 exit if $git->eof;
 
-print $red, '±', $green, '±', $reset;
+print $warning, '±', $cool, '±', $reset;
 my $head = <$git>;
 
 &parseFileStatus($git);
@@ -19,12 +25,12 @@ $git->close;
 exit;
 
 sub warning {
-  ($red, @_, $reset)
+  ($warning, @_, $reset)
 }
 
 sub parseHead {
   if(@_[0] =~ m!^##\s([\w\-]+(?:\.[\w\-]+)*)(?:\.\.\.([\w\-\.]+)/([\w\-\.]+)(?:\s(?:\[(?:(?:(ahead) (\d+))?(?:, )?(?:(behind) (\d+))|(gone))?\])?)?)?!){
-    if($debug){
+    if($debugLevel){
       my @oo = ($1, $2, $3, $4, $5, $6, $7, $8);
       &dump(@oo);
     }
@@ -55,7 +61,7 @@ sub parseHead {
       print "✨" if $is_ahead;
     }
   }
-  elsif($debug){
+  elsif($debugLevel){
     if($_[0] =~ m!^##\s([\w\-\.]+)!){
       warn "OOO-->$1<--\n";
     }
