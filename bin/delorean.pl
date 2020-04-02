@@ -104,7 +104,7 @@ sub headCommit {
 
 sub branch {
     open my $git, "git status --porcelain -b 2> /dev/null |";
-    exit if $git->eof;
+    die "\n\t ☠️  Not a git repository...\n" if $git->eof;
     my $line = <$git>;
     return $1 if($line =~ m!^##\s([\w\-]+(?:\.[\w\-]+)*).*!);
     die "No branche: $line ?"
