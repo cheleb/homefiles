@@ -49,6 +49,8 @@ sub parseHead {
       push @branch, $branch unless $branch eq "master";
       push @branch, &warning($remote),'/', unless $remote eq "origin";
       push @branch, &warning($remoteBranch) unless $branch eq $remoteBranch;
+    } elsif($branch eq "HEAD") {
+      push @branch, "👽 ", &warning($branch), " ☠️"
     } else {
       push @branch, "🎉 ", &warning($branch)
     }
