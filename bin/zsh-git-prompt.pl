@@ -1,27 +1,31 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 use strict;
 
 use Getopt::Long;
+
+use MetaBookMarks::GitPrompt;
+
 my $warning;
 my $cool;
 my $reset;
-my $debugLevel=0;
+my $debug=0;
 GetOptions ("warning=s" => \$warning,     # String
             "cool=s"    => \$cool,        # string
             "reset=s"    => \$reset,        # string
-            "debug=i"   => \$debugLevel)  # Numeric
+            "debug=i"   => \$debug)  # Numeric
 or die("Error in command line arguments\n");
 
-open my $git, "git status --porcelain -b 2> /dev/null |";
-exit if $git->eof;
 
-print $warning, '±', $cool, '±', $reset;
-my $head = <$git>;
 
-&parseFileStatus($git);
-&parseHead($head);
-$git->close;
+
+my $prompt = gitPrompt($warning, $cool, $reset, $debug);
+
+#my $head = <$git>;
+
+#&parseFileStatus($git);
+#&parseHead($head);
+#$git->close;
 exit;
 
 sub warning {
@@ -30,7 +34,7 @@ sub warning {
 
 sub parseHead {
   if(@_[0] =~ m!^##\s([\w\-]+(?:\.[\w\-]+)*)(?:\.\.\.([\w\-\.]+)/([\w\-\.]+)(?:\s(?:\[(?:(?:(ahead)\s(\d+))?(?:,\s)?(?:(behind)\s(\d+))?|(gone))?\])?)?)?!){
-    if($debugLevel){
+    if($debug){
       my @oo = ($1, $2, $3, $4, $5, $6, $7, $8);
       &dump(@oo);
     }
@@ -63,7 +67,7 @@ sub parseHead {
       print "✨" if $is_ahead;
     }
   }
-  elsif($debugLevel){
+  elsif($debug){
     if($_[0] =~ m!^##\s([\w\-\.]+)!){
       warn "OOO-->$1<--\n";
     }
@@ -71,24 +75,6 @@ sub parseHead {
   }
 }
 
-sub parseFileStatus {
-  my @checks = (
-    sub {@_[0] =~ /^[AMRD]/ && "🚀"},      #STAGED 
-    sub {@_[0] =~/^.[MTD]/ && "🚧"},       #UNSTAGED
-    sub {@_[0] =~/^\?\?/ && "👀"},         #UNTRACKED
-    sub {@_[0] =~/^UU\s/ && "💥"},         # UNMERGED
-    sub {@_[0] =~ /^## .*diverged/ && "😨"} # DIVERGED
-  );
-  while(<$git>){
-    for (my $i=@checks-1; $i >= 0; $i--){
-      if(my $state = $checks[$i]->($_)){
-            splice @checks, $i, 1;
-            print ' ', $state;
-            last;
-        }
-    }
-  }
-}
 
 sub dump {
     print "\n";
