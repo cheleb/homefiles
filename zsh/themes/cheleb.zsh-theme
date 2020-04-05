@@ -3,10 +3,8 @@
 ### Git [±master ▾●]
 
 cheleb_git_prompt () {
-  #print $(zsh-git-prompt.pl --warning=%{$fg_bold[red]%} --cool=%{$fg_bold[green]%} --reset=%{$reset_color%} 2> /dev/null)
   print $(zsh-git-prompt.pl --warning=%{$fg_bold[red]%} --cool=%{$fg_bold[green]%} --reset=%{$reset_color%} )
 }
-
 
 _PATH="%{$fg_bold[white]%}%~%{$reset_color%}"
 
@@ -19,8 +17,6 @@ else
 fi
 _USERNAME="$_USERNAME%{$reset_color%}@%m"
 _LIBERTY="$_LIBERTY%{$reset_color%}"
-
-
 
 get_space () {
   local STR=$1$2
