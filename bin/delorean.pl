@@ -3,24 +3,34 @@
 use strict;
 
 use Getopt::Long;
+use MetaBookMarks::Git;
+
 my $from;
 my $to;
 my $debugLevel=0;
 my $sessionFile = "/tmp/delorean-" . getpwuid( $< );
-GetOptions ("from=s" => \$from,     # String
-            "to=s"    => \$to,        # string
-            "debug=i"   => \$debugLevel)  # Numeric
+my $dryRun;
+GetOptions ("from=s"   => \$from,         # String
+            "to=s"     => \$to,           # string
+            "debug=i"  => \$debugLevel,   # Numeric
+            'dry-run'   => \$dryRun)      # String
 or die("Error in command line arguments\n");
 
-my $branch = branch(); 
-
-$to = headCommit();
+my $repo = MetaBookMarks::Git->repository();
 
 my $continueSession = -e $sessionFile;
 
+my $branch = $repo->branch(); 
+
+$to = $repo->headCommit();
+
+dryRun() if $dryRun;
+
+die "\n\t 💀 Repository has changes!\n" if $repo->isDirty();
+
 newSession() unless $continueSession;
 
-if(branch() eq "HEAD"){
+if($repo->isDetachedHead()){
   my $notDone;
   do{
     startOrContinueSession();
@@ -34,7 +44,7 @@ if(branch() eq "HEAD"){
 
 sub newSession {
   die "\n\t 💥 Start commit must be provided with:\n\t\t --from COMMIT-HASH\n" unless $from;
-  my $branch = branch();
+  my $branch = $repo->branch();
   print " 🚀 ", $branch, "\n";
   debug("from: $from");
   debug("to: $to");
@@ -43,7 +53,7 @@ sub newSession {
   debug("Init history.");
   system "git checkout $from" unless $continueSession;
   debug("Starting...");
-  debug(headCommit())
+  debug($repo->headCommit())
 }
 
 sub startOrContinueSession {
@@ -93,21 +103,21 @@ sub prevCommit {
     
 }
 
-sub headCommit {
-    open my $currentGitFH, "git rev-parse HEAD 2> /dev/null |";
-    die " ☠️  Twiligh zone \n" if $currentGitFH->eof;
-    my $headCommit = <$currentGitFH>;
-    $currentGitFH->close();
-    chomp($headCommit);
-    return $headCommit
-}
+sub dryRun {
+  my $branch = $repo->branch();
+  unless($continueSession){
+    die "\n\t 💥 Start commit must be provided with:\n\t\t --from COMMIT-HASH\n" unless  $from;
+  }
 
-sub branch {
-    open my $git, "git status --porcelain -b 2> /dev/null |";
-    die "\n\t ☠️  Not a git repository...\n" if $git->eof;
-    my $line = <$git>;
-    return $1 if($line =~ m!^##\s([\w\-]+(?:\.[\w\-]+)*).*!);
-    die "No branche: $line ?"
+  print " 🚀 ", $branch, "\n";
+  print "from: $from", "\n";
+  print "to: $to", "\n";
+  print "Session file $sessionFile", "\n";
+  print "CMD: git log --reverse --oneline --no-abbrev-commit $branch > $sessionFile", "\n";
+  print "Init history.", "\n";
+  print "CMD: git checkout $from", "\n" unless $continueSession;
+  print "Starting...", "\n";
+  exit(0)
 }
 
 sub debug {
