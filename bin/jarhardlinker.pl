@@ -6,10 +6,12 @@ use Getopt::Long;
 use File::Next;
 use File::Slurp;
 use File::stat;
+use Growl::GNTP;
 use POSIX;
 
 my $nexus="/opt/nexus/sonatype-work/nexus3/blobs/default/content";
 my ($all, $gradle, $maven, $sbt, $debug, $dryRun, $printStats, $relink);
+$printStats=1;
 
 GetOptions ("nexus=s"      => \$nexus,   # String
             "maven"        => \$maven,
@@ -22,7 +24,11 @@ GetOptions ("nexus=s"      => \$nexus,   # String
             "relink"       => \$relink
             )   # Numeric
 or die("Error in command line arguments\n");
- 
+
+my $growl = Growl::GNTP->new(AppName => "Jar HardLinker");
+#$growl->register([{Name => "saving"}]);
+
+
 my $cachePaths = {
   maven => $ENV{"HOME"} . "/.m2/repository/",
   sbt => $ENV{'HOME'} . '/Library/Caches/Coursier/v1/http/localhost%3A8081/repository/',
@@ -61,8 +67,8 @@ foreach my $repository (@repositories) {
   print $repository, "\n";
   die "No repository ($repository)\n" unless -d $cachePaths->{$repository};
 
-  printStats($repository, $cachePaths->{$repository}) if $printStats;
   hardLinkFiles($repository) if $relink;
+  printStats($repository, $cachePaths->{$repository}) if $printStats;
 }
 
 exit(0);
@@ -110,6 +116,7 @@ sub printStats {
     while ( defined ( my $file = $sbtIter->() ) ) {
         my $st = stat($file);
         $stats->{'nlink '.$st->nlink}++;
+        debug(" ☕️ ".$file) if $st->nlink ==1 && $debug;
         next if $st->nlink == 1;
         $stats->{"size red"} += $st->size/(1024*1024);
     }
@@ -119,6 +126,13 @@ sub printStats {
     foreach my $key  (sort keys %{$stats}) {
         print "\t", $key, ': ', $stats->{$key}, "\n"
     }
+
+    $growl->notify(
+    Name => 'saving',
+    Title => 'New files',
+    Message => $stats->{'nlink 1'}.' files not linked',
+    Icon => 'http://localhost/~chelebithil/nexus.png'
+    ) if($stats->{'nlink 1'})
 
 }
 
