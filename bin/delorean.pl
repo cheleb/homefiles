@@ -1,5 +1,8 @@
 #!/usr/bin/env perl
 
+#
+# Time travel.
+#
 use strict;
 
 use Getopt::Long;
