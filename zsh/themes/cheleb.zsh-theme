@@ -3,7 +3,7 @@
 ### Git [±master ▾●]
 
 cheleb_git_prompt () {
-  print $(zsh-git-prompt.pl --warning=%{$fg_bold[red]%} --cool=%{$fg_bold[green]%} --reset=%{$reset_color%} )
+  print $(gistrot-out --warning=%{$fg_bold[red]%} --cool=%{$fg_bold[green]%} --reset=%{$reset_color%} )
 }
 
 _PATH="%{$fg_bold[white]%}%~%{$reset_color%}"
@@ -43,7 +43,7 @@ cheleb_precmd () {
 }
 
 setopt prompt_subst
-PROMPT='> $_LIBERTY'
+PROMPT='> $_LIBERTY '
 RPROMPT='$(cheleb_git_prompt)'
 
 autoload -U add-zsh-hook
