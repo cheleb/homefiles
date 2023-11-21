@@ -1,0 +1,38 @@
+#!/bin/bash
+
+usage() {
+    echo "Usage: $0 [-v <int>] [-i zulu|<string>]" 1>&2
+    exit 1
+}
+
+while getopts ":v:i:" o; do
+    case "${o}" in
+    v)
+        version=${OPTARG}
+        ;;
+    i)
+        case "${OPTARG}" in
+        zulu)
+            id="com.azul.zulu.jdk"
+            ;;
+        *)
+            id="net.java.openjdk.jdk"
+            ;;
+        esac
+        ;;
+    *)
+        usage
+        ;;
+    esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "${version}" ]; then
+    usage
+fi
+
+if [ -z "${id}" ]; then
+    /usr/libexec/java_home -v $version -xml | xmllint --xpath "/plist/array/dict[1]/string[./preceding-sibling::key[1][.='JVMHomePath']]/text()" -
+else
+    /usr/libexec/java_home -v $version -xml | xmllint --xpath "/plist/array/dict[child::string[.='$id']]/string[./preceding-sibling::key[1][.='JVMHomePath']]/text()" -
+fi
