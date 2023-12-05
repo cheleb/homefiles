@@ -3,7 +3,8 @@
 ### Git [±master ▾●]
 
 cheleb_git_prompt () {
-  print $(gistrot-out --warning=%{$fg_bold[red]%} --cool=%{$fg_bold[green]%} --reset=%{$reset_color%} )
+   print $(gistrot-out)
+# --warning=%{$fg_bold[red]%} --cool=%{$fg_bold[green]%} --reset=%{$reset_color%})
 }
 
 _PATH="%{$fg_bold[white]%}%~%{$reset_color%}"
@@ -25,7 +26,7 @@ get_space () {
   local SPACES=""
   (( LENGTH = ${COLUMNS} - $LENGTH - 1))
 
-  for i in {0..$LENGTH}
+  for i in {1..$LENGTH}
     do
       SPACES="$SPACES "
     done
@@ -34,17 +35,17 @@ get_space () {
 }
 
 _1LEFT="$_PATH"
-_1RIGHT="[%*] "
+_1RIGHT='$(cheleb_git_prompt)'
 
 cheleb_precmd () {
-  _1SPACES=`get_space $_1LEFT $_1RIGHT`
+  _1SPACES=`get_space $_1LEFT$_1RIGHT`
   print
   print -rP "$_1LEFT$_1SPACES$_1RIGHT"
 }
 
 setopt prompt_subst
-PROMPT='> $_LIBERTY '
-RPROMPT='$(cheleb_git_prompt)'
+PROMPT='[%*]> $_LIBERTY '
+RPROMPT=''
 
 autoload -U add-zsh-hook
 add-zsh-hook precmd cheleb_precmd
